@@ -6,9 +6,6 @@ volumes:
 
 networks:
   default:
-  traefik:
-    external:
-      name: containermgmt_traefik
 
 services:
 
@@ -22,7 +19,6 @@ services:
       - 9090:9090
     networks:
       - default
-      - traefik
     volumes:
       - ./prometheus/:/etc/prometheus/
       - prometheus_data:/prometheus
@@ -39,6 +35,7 @@ services:
 
   node_exporter:
     image: napnap75/rpi-prometheus:node_exporter
+    #hostname: '{{.Node.Hostname}}'
     restart: unless-stopped
     ports:
       - 9100
@@ -51,20 +48,30 @@ services:
       - '--path.sysfs=/host/sys'
       - --collector.filesystem.ignored-mount-points
       - "^/(sys|proc|dev|host|etc|rootfs/var/lib/docker/containers|rootfs/var/lib/docker/overlay2|rootfs/run/docker/netns|rootfs/var/lib/docker/aufs)($$|/)"
-    # deploy:
-    #   mode: global
+    deploy:
+      mode: global
 
   arm_exporter:
     image: carlosedp/arm_exporter
+    #hostname: '{{.Node.Hostname}}'
     restart: unless-stopped
     ports:
       - 9243
-    # deploy:
-    #   mode: global
-
+    deploy:
+      mode: global
+ 
+#  pihole_exporter:
+#    image: bingenito/pihole-exporter
+#    #hostname: '{{.Node.Hostname}}'
+#    ports:
+#      - 9311
+#    command:
+#      - '-log.level=debug'
+#      #- '-pihole http://192.168.2.30'
 
   cadvisor:
     image: carlosedp/rpi-cadvisor
+    #hostname: '{{.Node.Hostname}}'
     restart: unless-stopped
     ports:
       - 8082:8080
@@ -73,8 +80,9 @@ services:
       - /var/run:/var/run:rw
       - /sys:/sys:ro
       - /var/lib/docker/:/var/lib/docker:ro
-    # deploy:
-    #   mode: global
+      - /var/lib/dbus/:/var/lib/dbus/machine-id:ro
+    deploy:
+      mode: global
     command:
       - --global_housekeeping_interval=30s
       - --housekeeping_interval=5s
@@ -102,7 +110,6 @@ services:
     restart: unless-stopped
     networks:
       - default
-      - traefik
     ports:
       - 3000:3000
     volumes:
