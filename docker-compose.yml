@@ -2,7 +2,7 @@ version: '3'
 
 volumes:
   prometheus_data: {}
-  grafana_data: {}
+  grafana: {}
 
 networks:
   default:
@@ -92,20 +92,20 @@ services:
       - --housekeeping_interval=5s
       - --storage_duration=1m0s
 
-    alertmanager:
-      image: napnap75/rpi-prometheus:alertmanager
-      restart: unless-stopped
-      ports:
-       - 9093:9093
-      volumes:
-       - ./alertmanager/:/etc/alertmanager/
-      command:
-       - '-config.file=/etc/alertmanager/config.yml'
-       - '-storage.path=/alertmanager'
-      #deploy:
-      #  placement:
-      #    constraints:
-      #- node.hostname == ${HOSTNAME}
+#  alertmanager:
+#    image: napnap75/rpi-prometheus:alertmanager
+#    restart: unless-stopped
+#    ports:
+#     - 9093:9093
+#    volumes:
+#     - ./alertmanager/:/etc/alertmanager/
+#    command:
+#     - '-config.file=/etc/alertmanager/config.yml'
+#     - '-storage.path=/alertmanager'
+#    deploy:
+#      placement:
+#        constraints:
+#    - node.hostname == ${HOSTNAME}
 
   grafana:
     image: grafana/grafana
@@ -117,7 +117,7 @@ services:
     ports:
       - 3000:3000
     volumes:
-      - grafana_data:/var/lib/grafana
+      - grafana:/var/lib/grafana
     env_file:
       - config.monitoring
     labels:
