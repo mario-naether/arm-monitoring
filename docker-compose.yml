@@ -51,6 +51,10 @@ services:
     deploy:
       mode: global
 
+  #blackbox_exporter:
+  #  image: napnap75/rpi-prometheus:blackbox_exporter
+  # restart: unless-stopped
+
   arm_exporter:
     image: carlosedp/arm_exporter
     #hostname: '{{.Node.Hostname}}'
@@ -88,23 +92,23 @@ services:
       - --housekeeping_interval=5s
       - --storage_duration=1m0s
 
-  # alertmanager:
-  #   image: napnap75/rpi-prometheus:alertmanager
-  #   restart: unless-stopped
-  #   ports:
-  #     - 9093:9093
-  #   volumes:
-  #     - ./alertmanager/:/etc/alertmanager/
-  #   command:
-  #     - '-config.file=/etc/alertmanager/config.yml'
-  #     - '-storage.path=/alertmanager'
-  #   deploy:
-  #     placement:
-  #       constraints:
-  #         - node.hostname == ${HOSTNAME}
+    alertmanager:
+      image: napnap75/rpi-prometheus:alertmanager
+      restart: unless-stopped
+      ports:
+       - 9093:9093
+      volumes:
+       - ./alertmanager/:/etc/alertmanager/
+      command:
+       - '-config.file=/etc/alertmanager/config.yml'
+       - '-storage.path=/alertmanager'
+      #deploy:
+      #  placement:
+      #    constraints:
+      #- node.hostname == ${HOSTNAME}
 
   grafana:
-    image: fg2it/grafana-armhf:v4.6.3
+    image: grafana/grafana
     depends_on:
       - prometheus
     restart: unless-stopped
