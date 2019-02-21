@@ -84,9 +84,10 @@ services:
       - /var/run:/var/run:rw
       - /sys:/sys:ro
       - /var/lib/docker/:/var/lib/docker:ro
-      - /var/lib/dbus/:/var/lib/dbus/machine-id:ro
-    deploy:
-      mode: global
+      - /dev/disk/:/dev/disk:ro
+      #- /var/lib/dbus/:/var/lib/dbus/machine-id:ro
+    #deploy:
+    #  mode: global
     command:
       - --global_housekeeping_interval=30s
       - --housekeeping_interval=5s
@@ -117,14 +118,14 @@ services:
     ports:
       - 3000:3000
     volumes:
-      - grafana:/var/lib/grafana
+      - grafana_data:/var/lib/grafana
     env_file:
       - config.monitoring
-    labels:
-      - "traefik.backend=grafana"
-      - "traefik.frontend.rule=Host:grafana.cloud.carlosedp.com"
-      - "traefik.docker.network=containermgmt_traefik"
-      - "traefik.enable=true"
-      - "traefik.port=3000"
-      - "traefik.default.protocol=http"
+    #labels:
+    #  - "traefik.backend=grafana"
+    #  - "traefik.frontend.rule=Host:grafana.cloud.carlosedp.com"
+    #  - "traefik.docker.network=containermgmt_traefik"
+    #  - "traefik.enable=true"
+    #  - "traefik.port=3000"
+    #  - "traefik.default.protocol=http"
 
