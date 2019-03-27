@@ -2,7 +2,7 @@ version: '3'
 
 volumes:
   prometheus_data: {}
-  grafana: {}
+  grafana_data: {}
 
 networks:
   default:
@@ -38,7 +38,7 @@ services:
     #hostname: '{{.Node.Hostname}}'
     restart: unless-stopped
     ports:
-      - 9100
+      - 9100:9100
     volumes:
       - /proc:/host/proc:ro
       - /sys:/host/sys:ro
@@ -48,22 +48,30 @@ services:
       - '--path.sysfs=/host/sys'
       - --collector.filesystem.ignored-mount-points
       - "^/(sys|proc|dev|host|etc|rootfs/var/lib/docker/containers|rootfs/var/lib/docker/overlay2|rootfs/run/docker/netns|rootfs/var/lib/docker/aufs)($$|/)"
-    deploy:
-      mode: global
+#    deploy:
+#      mode: global
 
-  #blackbox_exporter:
-  #  image: napnap75/rpi-prometheus:blackbox_exporter
-  # restart: unless-stopped
+  blackbox_exporter:
+    image: napnap75/rpi-prometheus:blackbox_exporter
+    restart: unless-stopped
+    ports:
+      - 9115:9115
+    volumes:
+      - ./blackbox:/config
+#    deploy:
+#      mode: global
+    command:
+      - '--config.file=/config/blackbox.yml'
 
   arm_exporter:
     image: carlosedp/arm_exporter
     #hostname: '{{.Node.Hostname}}'
     restart: unless-stopped
     ports:
-      - 9243
-    deploy:
-      mode: global
- 
+      - 9243:9243
+#    deploy:
+#      mode: global
+
 #  pihole_exporter:
 #    image: bingenito/pihole-exporter
 #    #hostname: '{{.Node.Hostname}}'
@@ -74,24 +82,25 @@ services:
 #      #- '-pihole http://192.168.2.30'
 
   cadvisor:
-    image: carlosedp/rpi-cadvisor
+    image: budry/cadvisor-arm:latest
+    #image: unibaktr/cadvisor:linux-arm32v7-latest
     #hostname: '{{.Node.Hostname}}'
     restart: unless-stopped
     ports:
-      - 8082:8080
+      - 8080:8080
     volumes:
       - /:/rootfs:ro
       - /var/run:/var/run:rw
       - /sys:/sys:ro
       - /var/lib/docker/:/var/lib/docker:ro
-      - /dev/disk/:/dev/disk:ro
-      #- /var/lib/dbus/:/var/lib/dbus/machine-id:ro
-    #deploy:
-    #  mode: global
+      - /var/disk/:/var/disk:ro
+#    deploy:
+#      mode: global
     command:
-      - --global_housekeeping_interval=30s
-      - --housekeeping_interval=5s
-      - --storage_duration=1m0s
+       - --enable_load_reader=true
+    #  - --global_housekeeping_interval=30s
+    #  - --housekeeping_interval=5s
+    #  - --storage_duration=1m0s
 
 #  alertmanager:
 #    image: napnap75/rpi-prometheus:alertmanager
@@ -103,10 +112,10 @@ services:
 #    command:
 #     - '-config.file=/etc/alertmanager/config.yml'
 #     - '-storage.path=/alertmanager'
-#    deploy:
-#      placement:
-#        constraints:
-#    - node.hostname == ${HOSTNAME}
+    #deploy:
+    #  placement:
+    #    constraints:
+    #- node.hostname == ${HOSTNAME}
 
   grafana:
     image: grafana/grafana
@@ -119,13 +128,7 @@ services:
       - 3000:3000
     volumes:
       - grafana_data:/var/lib/grafana
+      - ./grafana/provisioning:/etc/grafana/provisioning
+      - ./grafana/plugins:/var/lib/grafana/plugins
     env_file:
       - config.monitoring
-    #labels:
-    #  - "traefik.backend=grafana"
-    #  - "traefik.frontend.rule=Host:grafana.cloud.carlosedp.com"
-    #  - "traefik.docker.network=containermgmt_traefik"
-    #  - "traefik.enable=true"
-    #  - "traefik.port=3000"
-    #  - "traefik.default.protocol=http"
-
